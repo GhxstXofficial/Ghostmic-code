@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GhostMic v4.1</title>
+  <script src="https://cdn.socket.io/4.7.1/socket.io.min.js"></script>
+</head>
+<body style="background:#111; color:white; text-align:center;">
+  <h1>GhostMic v4.1 Dashboard</h1>
+  <button onclick="download()">Download Recording</button>
+  <p>Status: <span id="status">Idle</span></p>
+  <audio id="audio" controls autoplay></audio>
+
+  <script>
+    const socket = io();
+    const audioElement = document.getElementById('audio');
+    let audioBuffer = [];
+
+    const context = new AudioContext({ sampleRate: 16000 });
+    const source = context.createBufferSource();
+
+    socket.on('audio_stream', (data) => {
+      const buffer = new Uint8Array(data).buffer;
+      context.decodeAudioData(buffer.slice(0)).then(decoded => {
+        const playSource = context.createBufferSource();
+        playSource.buffer = decoded;
+        playSource.connect(context.destination);
+        playSource.start(0);
+      });
+    });
+
+    function download() {
+      window.location.href = "/download";
+    }
+  </script>
+</body>
+</html>
